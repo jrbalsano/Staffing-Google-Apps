@@ -3,6 +3,7 @@ var Staffing = Staffing || {};
 function onOpen() {
   Staffing.subButId = "submitButton";
   Staffing.workingLabel = "workLabel";
+  Staffing.CONFGRDNAME = "Conflicts";
   
   ss = SpreadsheetApp.getActiveSpreadsheet();
   var menuEntries = [{name: "Make Binaries From Field", functionName: "promptForBinary"},
@@ -71,10 +72,24 @@ function disableSubmit(e) {
   return app;
 }
 
+//Functions below are for manipulating sheets and apps
+
 function closeUI(e) {
   var app = UiApp.getActiveApplication();
   app.close();
   return app;
+}
+
+function createSheet(name) {
+  var sheet
+  try { 
+    sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(name);
+  }
+  catch (err) {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  }
+  sheet.clear();
+  return sheet;
 }
 
 //Functions below are for generating UI Pieces

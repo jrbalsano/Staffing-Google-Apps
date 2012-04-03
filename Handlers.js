@@ -1,3 +1,8 @@
+var Staffing = Staffing || {};
+Staffing.subButId = "submitButton";
+Staffing.workingLabel = "workLabel";
+Staffing.CONFGRDNAME = "Conflicts";
+
 function generateFieldBinaries(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var columnHeader = e.parameter.column;
@@ -23,7 +28,7 @@ function generateFieldBinaries(e) {
   });
   
   var newColumns = splitBinaryField(oldColumn);
-  sheet.insertColumnsAfter(column, newCols[0].length);
+  sheet.insertColumnsAfter(column, newColumns[0].length);
   sheet.getRange(1, column+1, newColumns.length, newColumns[0].length).setValues(newColumns);
   closeUI(e);
   return UiApp.getActiveApplication();
@@ -42,10 +47,7 @@ function generateConflictGrid(e) {
     vals[i] = [];
     vals[i][0] = vals [0][i];
     for(var j = 1; j < width; j++) {
-      if(i <= j)
-        vals[i][j] = "X";
-      else
-        vals[i][j] = "";
+      vals[i][j] = "";
     }
   }
   var conflictGrid = createSheet(Staffing.CONFGRDNAME);
@@ -56,8 +58,42 @@ function generateConflictGrid(e) {
 }
 
 function generateStaffing(e) {
-  
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var app = UiApp.getActiveApplication();
+  var names = ss.getSheetByName(e.parameter.availabilityName).getRange(2, 1,
+      ss.getSheetByName(e.parameter.availabilityName).getLastRow() -1, 1).getValues();
+  var availability = ss.getSheetByName(e.parameter.availabilityName).getRange(2, 2, 
+      ss.getSheetByName(e.parameter.availabilityName).getLastRow() - 1,
+      ss.getSheetByName(e.parameter.availabilityName).getLastColumn() - 1)
+      .getValues();
+  var needs = ss.getSheetByName(e.parameter.needName).getDataRange().getValues();
+  var conflicts = ss.getSheetByName(Staffing.CONFGRDNAME).getRange(2, 2,
+      ss.getSheetByName(Staffing.CONFGRDNAME).getLastRow() - 1,
+      ss.getSheetByName(Staffing.CONFGRDNAME).getLastColumn() - 1)
+      .getValues();
+  var staffingSheet = createSheet("Staffing");
+  staffingSheet.getRange(1,2,1,needs[0].length).setValues([needs[0]]);
+  staffingSheet.getRange(2,1,names.length, 1).setValues(names);
+  var staffingRange = staffingSheet.getRange(2, 2, 
+    ss.getSheetByName(e.parameter.availabilityName).getLastRow() - 1,
+    ss.getSheetByName(e.parameter.availabilityName).getLastColumn() - 1);
+  var myStaffer = new Staffer(availability, conflicts, needs[1]);
+  myStaffer.staff();
+  myStaffer.swapForMaxed(.8, 2);
+  var newStaffing = myStaffer.sMatrix.get2DArray();
+  UTIL.forEach(newStaffing, function(v, row) {
+    UTIL.forEach(newStaffing[row], function(val, col) {
+      if(val == true) newStaffing[row][col] = "1";
+      else newStaffing[row][col] = "";
+    });
+  });
+  staffingRange.setValues(newStaffing);
+  closeUI(e);
+  ss.setActiveSheet(ss.getSheetByName("Staffing"));
+  return app;
 }
+
+//Functions below here are auxiliary functions for the handlers.
 
 function splitBinaryField(column) {
   var newCols = [];
@@ -76,7 +112,7 @@ function splitBinaryField(column) {
           found = true;
       });
       if(!found)
-        newHeaders.push(items[k]);
+        newHeaders.push(value);
     });
   }
   

@@ -1,10 +1,9 @@
 var Staffing = Staffing || {};
+Staffing.subButId = "submitButton";
+Staffing.workingLabel = "workLabel";
+Staffing.CONFGRDNAME = "Conflicts";
 
-function onOpen() {
-  Staffing.subButId = "submitButton";
-  Staffing.workingLabel = "workLabel";
-  Staffing.CONFGRDNAME = "Conflicts";
-  
+function onOpen() {  
   ss = SpreadsheetApp.getActiveSpreadsheet();
   var menuEntries = [{name: "Make Binaries From Field", functionName: "promptForBinary"},
                      {name: "Create Conflicts Sheet", functionName: "promptForConflictSheet"},
@@ -17,7 +16,7 @@ function promptForConflictSheet() {
   var panel = app.createGrid(2,2);
   var sheets = sheetListBox(app).setName('sheet');
   
-  panel.setWidget(0, 0, app.createLabel("Availability sheet name:")).setWidth(0, 1, sheets);
+  panel.setWidget(0, 0, app.createLabel("Availability sheet name:")).setWidget(0, 1, sheets);
   panel.setWidget(1, 1, app.createButton("Generate Conflict Grid")
       .addClickHandler(app.createServerHandler('generateConflictGrid').addCallbackElement(panel)));
   SpreadsheetApp.getActiveSpreadsheet().show(app.add(panel));
@@ -31,7 +30,7 @@ function promptForBinary() {
   
   panel.setWidget(0, 0, app.createLabel("Shet Name")).setWidget(0, 1, sheets);
   panel.setWidget(1, 0, app.createLabel("Column Header")).setWidget(1, 1, column);
-  panel.setWidgeth(2, 1, app.createButton("Create Binary Fields")
+  panel.setWidget(2, 1, app.createButton("Create Binary Fields")
       .addClickHandler(app.createServerHandler('generateFieldBinaries').addCallbackElement(panel)));
   app.add(panel);
   SpreadsheetApp.getActiveSpreadsheet().show(app);
@@ -81,7 +80,7 @@ function closeUI(e) {
 }
 
 function createSheet(name) {
-  var sheet
+  var sheet;
   try { 
     sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(name);
   }
